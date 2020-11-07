@@ -1,19 +1,40 @@
-import React, { useState, useEffect } from 'react';
+/** @jsx jsx */
+import { useState, useEffect, useContext, useRef } from 'react';
 import Input from './Components/Input';
 import Message from './Components/Message';
+import Header from './Components/Header';
 import firebase from 'firebase/app';
-import firebaseConfig from './config';
-import 'firebase/auth';
-import './App.css';
 import 'firebase/firestore';
-
-if (!firebase.apps.length) {
-  firebase.initializeApp(firebaseConfig);
-}
+import { userContext } from './contexts/userContext';
+import { jsx, css } from '@emotion/core';
+import styled from '@emotion/styled';
 
 export const database = firebase.firestore();
+
+const style = css`
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+`;
+
+const MessageWrapper = styled.div`
+  width: 600px;
+  flex: 1 1 100%;
+  margin: 0 auto 40px;
+  padding: 10px;
+  overflow-y: scroll;
+  border: 1px dotted black;
+
+  @media (max-width: 720px) {
+    width: 100%;
+  }
+`;
+
 const App = () => {
   const [messages, setMessages] = useState([]);
+  const { user } = useContext(userContext);
+
+  const dummy = useRef();
 
   useEffect(() => {
     database
@@ -24,36 +45,45 @@ const App = () => {
         snap.forEach((doc) => {
           const data = doc.data();
           const message = {
+            uid: data.uid || '',
             id: doc.id || '',
             message: data.message || '',
             author: data.author || '',
+            photoURL: data.photoURL || '',
             createdAt: (data.createdAt && data.createdAt.seconds * 1000) || '',
           };
-          console.log(message);
           setMessages((prev) => [...prev, message]);
-          // setMessages(messages);
         });
       });
   }, []);
 
-  // const handleMessage = (text) => {
-  //   setMessages([...messages, { message: text, author: 'Yuki' }]);
-  // };
-
-  console.log('messages', messages);
+  if (dummy.current) {
+    dummy.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
+  }
 
   return (
-    <div className="App">
-      {/* <header className="App-header">Chat App</header> */}
+    <div css={style} className="App">
+      <Header />
+      {user.uid ? (
+        <MessageWrapper>
+          {messages.map((m, id) => {
+            const obj = {
+              id,
+              uid: m.uid,
+              message: m.message,
+              author: m.author,
+              photoURL: m.photoURL,
+            };
+            return <Message key={id} {...obj} />;
+          })}
+          <span ref={dummy}></span>
+        </MessageWrapper>
+      ) : (
+        <MessageWrapper>
+          <h2>You must Login to post and see messages.</h2>
+        </MessageWrapper>
+      )}
       <Input />
-      {messages.map((m, id) => {
-        const obj = {
-          id,
-          message: m.message,
-          author: m.author,
-        };
-        return <Message key={id} {...obj} />;
-      })}
     </div>
   );
 };
