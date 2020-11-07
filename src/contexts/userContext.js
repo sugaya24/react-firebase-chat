@@ -2,7 +2,6 @@ import React, { createContext, useEffect, useState } from 'react';
 import firebase from 'firebase/app';
 import firebaseConfig from '../config';
 import 'firebase/auth';
-console.log(firebaseConfig);
 if (!firebase.apps.length) {
   firebase.initializeApp(firebaseConfig);
 }
