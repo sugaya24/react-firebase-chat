@@ -1,6 +1,6 @@
 /** @jsx jsx */
-import { useContext } from 'react';
-import { jsx } from '@emotion/core';
+import { useContext, useEffect } from 'react';
+import { jsx } from '@emotion/react';
 import styled from '@emotion/styled';
 import { userContext } from '../contexts/userContext';
 
@@ -63,9 +63,13 @@ const CurrentUserText = styled.div`
   }
 `;
 
-export const Message = ({ message, uid, author, photoURL }) => {
+export const Message = ({ message, uid, author, photoURL, scrollToBottom }) => {
   const { auth } = useContext(userContext);
   const isCurrentUserMessage = uid === auth.currentUser.uid;
+
+  useEffect(() => {
+    scrollToBottom();
+  }, []);
 
   return (
     <div>

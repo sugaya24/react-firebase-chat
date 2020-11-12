@@ -2,7 +2,7 @@
 import { useState, useContext } from 'react';
 import { database } from '../App';
 import * as firebase from 'firebase/app';
-import { jsx, css } from '@emotion/core';
+import { jsx, css } from '@emotion/react';
 import styled from '@emotion/styled';
 import { userContext } from '../contexts/userContext';
 
@@ -46,10 +46,10 @@ export const Input = () => {
   const { photoURL } = auth.currentUser ? auth.currentUser : '';
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!message) return;
-    database.collection('messages').add({
+    await database.collection('messages').add({
       uid: user.uid,
       message,
       author: user.displayName,

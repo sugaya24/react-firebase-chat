@@ -4,7 +4,7 @@ import { userContext } from '../contexts/userContext';
 import srcLogo from '../images/logo.png';
 import styled from '@emotion/styled';
 
-export const Header = () => {
+export const Header = ({ messages }) => {
   const Container = styled.div`
     width: 960px;
     height: 80px;
@@ -43,16 +43,11 @@ export const Header = () => {
     cursor: pointer;
   `;
 
-  // const [user, setUser] = useState({});
   const { auth } = useContext(userContext);
 
   const handleLogin = () => {
     const provider = new firebase.auth.GoogleAuthProvider();
-    auth.signInWithPopup(provider).then((result) => {
-      // const token = result.credential.accessToken;
-      // const user = result.user;
-      // setUser(user);
-    });
+    auth.signInWithPopup(provider);
   };
 
   const handleLogout = () => {

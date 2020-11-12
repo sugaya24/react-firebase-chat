@@ -1,12 +1,13 @@
 /** @jsx jsx */
-import { useState, useEffect, useContext, useRef } from 'react';
+import { useEffect, useContext, useRef, useState } from 'react';
+import { useCollectionData } from 'react-firebase-hooks/firestore';
 import Input from './Components/Input';
 import Message from './Components/Message';
 import Header from './Components/Header';
 import firebase from 'firebase/app';
 import 'firebase/firestore';
 import { userContext } from './contexts/userContext';
-import { jsx, css } from '@emotion/core';
+import { jsx, css } from '@emotion/react';
 import styled from '@emotion/styled';
 
 export const database = firebase.firestore();
@@ -31,59 +32,45 @@ const MessageWrapper = styled.div`
 `;
 
 const App = () => {
-  const [messages, setMessages] = useState([]);
   const { user } = useContext(userContext);
+  const messagesRef = database.collection('messages');
+  const query = messagesRef.orderBy('createdAt');
+  const [messages] = useCollectionData(query, { idField: 'id' });
 
   const dummy = useRef();
 
-  useEffect(() => {
-    database
-      .collection('messages')
-      .orderBy('createdAt', 'asc')
-      .onSnapshot((snap) => {
-        setMessages([]);
-        snap.forEach((doc) => {
-          const data = doc.data();
-          const message = {
-            uid: data.uid || '',
-            id: doc.id || '',
-            message: data.message || '',
-            author: data.author || '',
-            photoURL: data.photoURL || '',
-            createdAt: (data.createdAt && data.createdAt.seconds * 1000) || '',
-          };
-          setMessages((prev) => [...prev, message]);
-        });
-      });
-  }, []);
-
-  if (dummy.current) {
-    dummy.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }
+  const scrollToBottom = () => {
+    if (dummy.current) {
+      dummy.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <div css={style} className="App">
       <Header />
       {user.uid ? (
         <MessageWrapper>
-          {messages.map((m, id) => {
-            const obj = {
-              id,
-              uid: m.uid,
-              message: m.message,
-              author: m.author,
-              photoURL: m.photoURL,
-            };
-            return <Message key={id} {...obj} />;
-          })}
+          {messages &&
+            messages.map((m, id) => {
+              const obj = {
+                id,
+                uid: m.uid,
+                message: m.message,
+                author: m.author,
+                photoURL: m.photoURL,
+              };
+              return (
+                <Message key={id} {...obj} scrollToBottom={scrollToBottom} />
+              );
+            })}
           <span ref={dummy}></span>
         </MessageWrapper>
       ) : (
         <MessageWrapper>
-          <h2>You must Login to post and see messages.</h2>
+          <h2>Please use a Google account to log in to my apps. Thank you!</h2>
         </MessageWrapper>
       )}
-      <Input />
+      <Input scrollToBottom={scrollToBottom} />
     </div>
   );
 };
